@@ -297,186 +297,686 @@
 
 <script>
 
+// ======================================================
+// ปุ่ม ❓
+// ======================================================
+const ms = document.getElementById('moonswitchs');
 
-let ms = document.getElementById('moonswitchs');
-
-
-
-
-ms.addEventListener('click',()=>{
-  alert("ยังไม่มีข้อมูลน้าาาาาา")
+ms.addEventListener('click', () => {
+  alert("Dashboard สรุปอารมณ์นักเรียน");
 });
 
 
-
-// ป้องกันโหลดหน้าโดยไม่ได้ login เสร็จแล้ว เอาเนื้อหากลับมาแสดง
+// ======================================================
+// แสดงหน้า
+// ======================================================
 document.documentElement.classList.remove('guard-pending');
 
-// ====== ตั้งค่า Supabase (อ่านจาก env.js ซึ่งสร้างจาก .env) ======
+
+// ======================================================
+// SUPABASE
+// ======================================================
 const ENV = window.__ENV__ || {};
+
 const SUPABASE_URL = ENV.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = ENV.SUPABASE_ANON_KEY || "";
-// ================================================================
 
-const supabaseClient = (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY)
-  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+const supabaseClient =
+  (SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY)
+    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
 
-if(!supabaseClient){
+
+if (!supabaseClient) {
   document.getElementById('envWarning').classList.add('show');
 }
 
-const moodOrder = ["happy","excited","angry","sad","anxious","calm","tired","bored","confused","proud"];
+
+// ======================================================
+// อารมณ์ทั้งหมด
+// ======================================================
+const moodOrder = [
+  "happy",
+  "excited",
+  "angry",
+  "sad",
+  "anxious",
+  "calm",
+  "tired",
+  "bored",
+  "confused",
+  "proud"
+];
+
+
+// ======================================================
+// ชื่อภาษาไทย
+// ======================================================
 const moodMeta = {
-  happy:    { th: "มีความสุข" },
-  excited:  { th: "ตื่นเต้น" },
-  angry:    { th: "โกรธ" },
-  sad:      { th: "เศร้า" },
-  anxious:  { th: "กังวล" },
-  calm:     { th: "ผ่อนคลาย" },
-  tired:    { th: "เหนื่อย" },
-  bored:    { th: "เบื่อ" },
-  confused: { th: "สับสน" },
-  proud:    { th: "ภูมิใจ" },
+
+  happy: {
+    th: "มีความสุข"
+  },
+
+  excited: {
+    th: "ตื่นเต้น"
+  },
+
+  angry: {
+    th: "โกรธ"
+  },
+
+  sad: {
+    th: "เศร้า"
+  },
+
+  anxious: {
+    th: "กังวล"
+  },
+
+  calm: {
+    th: "ผ่อนคลาย"
+  },
+
+  tired: {
+    th: "เหนื่อย"
+  },
+
+  bored: {
+    th: "เบื่อ"
+  },
+
+  confused: {
+    th: "สับสน"
+  },
+
+  proud: {
+    th: "ภูมิใจ"
+  }
+
 };
 
-// build stat id map
+
+// ======================================================
+// รองรับทั้งภาษาไทยและ English
+// ======================================================
+const moodNormalize = {
+
+  "มีความสุข": "happy",
+  "ตื่นเต้น": "excited",
+  "โกรธ": "angry",
+  "เศร้า": "sad",
+  "กังวล": "anxious",
+  "ผ่อนคลาย": "calm",
+  "เหนื่อย": "tired",
+  "เบื่อ": "bored",
+  "สับสน": "confused",
+  "ภูมิใจ": "proud",
+
+  "happy": "happy",
+  "excited": "excited",
+  "angry": "angry",
+  "sad": "sad",
+  "anxious": "anxious",
+  "calm": "calm",
+  "tired": "tired",
+  "bored": "bored",
+  "confused": "confused",
+  "proud": "proud"
+
+};
+
+
+// ======================================================
+// ID ของตัวเลข
+// ======================================================
 const statIdMap = {
-  happy:"statHappy", excited:"statExcited", angry:"statAngry", sad:"statSad",
-  anxious:"statAnxious", calm:"statCalm", tired:"statTired", bored:"statBored",
-  confused:"statConfused", proud:"statProud"
+
+  happy: "statHappy",
+  excited: "statExcited",
+  angry: "statAngry",
+  sad: "statSad",
+  anxious: "statAnxious",
+  calm: "statCalm",
+  tired: "statTired",
+  bored: "statBored",
+  confused: "statConfused",
+  proud: "statProud"
+
 };
 
-// build bar rows once
+
+// ======================================================
+// สร้าง Bar
+// ======================================================
 const barsContainer = document.getElementById('bars');
-moodOrder.forEach(mood=>{
+
+barsContainer.innerHTML = "";
+
+moodOrder.forEach(mood => {
+
   const row = document.createElement('div');
+
   row.className = 'bar-row';
+
   row.innerHTML = `
-    <span class="lbl">${moodMeta[mood].th}</span>
-    <div class="bar-track"><div class="bar-fill" id="fill_${mood}" style="width:0%; background:var(--${mood});"></div></div>
-    <span class="count" id="count_${mood}">0</span>
+    <span class="lbl">
+      ${moodMeta[mood].th}
+    </span>
+
+    <div class="bar-track">
+
+      <div
+        class="bar-fill"
+        id="fill_${mood}"
+        style="
+          width:0%;
+          background:var(--${mood});
+        ">
+      </div>
+
+    </div>
+
+    <span
+      class="count"
+      id="count_${mood}">
+      0
+    </span>
   `;
+
   barsContainer.appendChild(row);
+
 });
 
-const rangeSelect = document.getElementById('rangeSelect');
-const causeFilter = document.getElementById('causeFilter');
-const refreshBtn = document.getElementById('refreshBtn');
-const dateRangeLabel = document.getElementById('dateRangeLabel');
 
-function isoDateDaysAgo(n){
+// ======================================================
+// Elements
+// ======================================================
+const rangeSelect =
+  document.getElementById('rangeSelect');
+
+const causeFilter =
+  document.getElementById('causeFilter');
+
+const refreshBtn =
+  document.getElementById('refreshBtn');
+
+const dateRangeLabel =
+  document.getElementById('dateRangeLabel');
+
+
+// ======================================================
+// วันที่
+// ======================================================
+function isoDateDaysAgo(n) {
+
   const d = new Date();
+
   d.setDate(d.getDate() - n);
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,'0')+"-"+String(d.getDate()).padStart(2,'0');
+
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, '0') +
+    "-" +
+    String(d.getDate()).padStart(2, '0')
+  );
+
 }
 
-function formatThaiDate(dateStr){
-  const [y,m,d] = dateStr.split('-').map(Number);
-  const months = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
-  return `${d} ${months[m-1]} ${y+543}`;
+
+// ======================================================
+// วันที่ภาษาไทย
+// ======================================================
+function formatThaiDate(dateStr) {
+
+  if (!dateStr) return "-";
+
+  const [y, m, d] =
+    dateStr.split('-').map(Number);
+
+  const months = [
+    "ม.ค.",
+    "ก.พ.",
+    "มี.ค.",
+    "เม.ย.",
+    "พ.ค.",
+    "มิ.ย.",
+    "ก.ค.",
+    "ส.ค.",
+    "ก.ย.",
+    "ต.ค.",
+    "พ.ย.",
+    "ธ.ค."
+  ];
+
+  return `${d} ${months[m - 1]} ${y + 543}`;
+
 }
 
-function formatTime(ts){
+
+// ======================================================
+// เวลา
+// ======================================================
+function formatTime(ts) {
+
+  if (!ts) return "-";
+
   const d = new Date(ts);
-  return d.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+
+  return d.toLocaleTimeString(
+    'th-TH',
+    {
+      hour: '2-digit',
+      minute: '2-digit'
+    }
+  );
+
 }
 
-async function loadData(){
-  const loadingMsg = document.getElementById('loadingMsg');
-  const emptyMsg = document.getElementById('emptyMsg');
-  const errMsg = document.getElementById('errMsg');
-  const table = document.getElementById('entryTable');
-  const tbody = document.getElementById('entryBody');
+
+// ======================================================
+// โหลดข้อมูล
+// ======================================================
+async function loadData() {
+
+  const loadingMsg =
+    document.getElementById('loadingMsg');
+
+  const emptyMsg =
+    document.getElementById('emptyMsg');
+
+  const errMsg =
+    document.getElementById('errMsg');
+
+  const table =
+    document.getElementById('entryTable');
+
+  const tbody =
+    document.getElementById('entryBody');
+
 
   table.style.display = 'none';
+
   emptyMsg.style.display = 'none';
+
   errMsg.style.display = 'none';
+
   loadingMsg.style.display = 'block';
-  loadingMsg.textContent = 'กำลังโหลดข้อมูล...';
 
-  if(!supabaseClient){
+  loadingMsg.textContent =
+    'กำลังโหลดข้อมูล...';
+
+
+  // ====================================================
+  // ตรวจ Supabase
+  // ====================================================
+  if (!supabaseClient) {
+
     loadingMsg.style.display = 'none';
+
     errMsg.style.display = 'block';
-    errMsg.textContent = 'ยังไม่ได้เชื่อมต่อฐานข้อมูล กรุณาตั้งค่า .env ก่อน';
+
+    errMsg.textContent =
+      'ยังไม่ได้เชื่อมต่อฐานข้อมูล';
+
     return;
+
   }
 
-  const range = rangeSelect.value;
-  let query = supabaseClient.from('mood_entries').select('*').order('created_at', { ascending:false });
 
-  if(range === 'today'){
-    const t = isoDateDaysAgo(0);
-    query = query.eq('entry_date', t);
-    dateRangeLabel.textContent = `ข้อมูลวันนี้ (${formatThaiDate(t)})`;
-  }else if(range === 'week'){
-    const from = isoDateDaysAgo(6);
-    query = query.gte('entry_date', from);
-    dateRangeLabel.textContent = `7 วันล่าสุด`;
-  }else{
-    dateRangeLabel.textContent = 'ภาพรวมทั้งหมด';
+  // ====================================================
+  // Query
+  // ====================================================
+  const range =
+    rangeSelect.value;
+
+  let query =
+    supabaseClient
+      .from('mood_entries')
+      .select('*')
+      .order(
+        'created_at',
+        {
+          ascending: false
+        }
+      );
+
+
+  // ====================================================
+  // วันนี้
+  // ====================================================
+  if (range === 'today') {
+
+    const today =
+      isoDateDaysAgo(0);
+
+    query =
+      query.eq(
+        'entry_date',
+        today
+      );
+
+    dateRangeLabel.textContent =
+      `ข้อมูลวันนี้ (${formatThaiDate(today)})`;
+
   }
 
-  if(causeFilter.value){
-    query = query.eq('cause', causeFilter.value);
+
+  // ====================================================
+  // 7 วัน
+  // ====================================================
+  else if (range === 'week') {
+
+    const from =
+      isoDateDaysAgo(6);
+
+    query =
+      query.gte(
+        'entry_date',
+        from
+      );
+
+    dateRangeLabel.textContent =
+      '7 วันล่าสุด';
+
   }
 
-  try{
-    const { data, error } = await query;
-    if(error) throw error;
 
-    loadingMsg.style.display = 'none';
+  // ====================================================
+  // ทั้งหมด
+  // ====================================================
+  else {
 
-    const counts = {};
-    moodOrder.forEach(m => counts[m] = 0);
-    (data || []).forEach(row => { if(counts[row.mood] !== undefined) counts[row.mood]++; });
+    dateRangeLabel.textContent =
+      'ภาพรวมทั้งหมด';
 
-    let total = 0;
-    moodOrder.forEach(m => total += counts[m]);
-    const pct = (n) => total > 0 ? Math.round((n/total)*100) : 0;
+  }
 
-    moodOrder.forEach(m=>{
-      document.getElementById(statIdMap[m]).textContent = counts[m];
-      document.getElementById('fill_'+m).style.width = pct(counts[m]) + '%';
-      document.getElementById('count_'+m).textContent = counts[m];
-    });
 
-    if(!data || data.length === 0){
-      emptyMsg.style.display = 'block';
-      return;
+  // ====================================================
+  // Filter สาเหตุ
+  // ====================================================
+  if (causeFilter.value) {
+
+    query =
+      query.eq(
+        'cause',
+        causeFilter.value
+      );
+
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } = await query;
+
+
+    if (error) {
+      throw error;
     }
 
-    tbody.innerHTML = data.map(row => `
-      <tr>
-        <td>${escapeHtml(row.student_name)}</td>
-        <td>${escapeHtml(row.student_no)}</td>
-        <td><span class="pill ${row.mood}">${moodMeta[row.mood]?.th || row.mood}</span></td>
-        <td>${row.cause ? `<span class="cause-tag">${escapeHtml(row.cause)}</span>` : '<span class="cause-tag">–</span>'}</td>
-        <td>${formatThaiDate(row.entry_date)}</td>
-        <td>${formatTime(row.created_at)}</td>
-      </tr>
-    `).join('');
-    table.style.display = 'table';
 
-  }catch(err){
-    console.error(err);
-    loadingMsg.style.display = 'none';
-    errMsg.style.display = 'block';
-    errMsg.textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + (err.message || 'unknown error');
+    console.log(
+      "ข้อมูลจาก Supabase:",
+      data
+    );
+
+
+    loadingMsg.style.display =
+      'none';
+
+
+    // ==================================================
+    // สร้างตัวนับ
+    // ==================================================
+    const counts = {};
+
+    moodOrder.forEach(
+      mood => {
+        counts[mood] = 0;
+      }
+    );
+
+
+    // ==================================================
+    // นับอารมณ์
+    // รองรับไทย + English
+    // ==================================================
+    (data || []).forEach(row => {
+
+      const rawMood =
+        String(row.mood || '').trim();
+
+      const mood =
+        moodNormalize[rawMood];
+
+      console.log(
+        "Mood:",
+        rawMood,
+        "=>",
+        mood
+      );
+
+      if (
+        mood &&
+        counts[mood] !== undefined
+      ) {
+
+        counts[mood]++;
+
+      }
+
+    });
+
+
+    // ==================================================
+    // รวมทั้งหมด
+    // ==================================================
+    let total = 0;
+
+    moodOrder.forEach(
+      mood => {
+        total += counts[mood];
+      }
+    );
+
+
+    // ==================================================
+    // เปอร์เซ็นต์
+    // ==================================================
+    const pct = (num) => {
+
+      if (total <= 0) {
+        return 0;
+      }
+
+      return Math.round(
+        (num / total) * 100
+      );
+
+    };
+
+
+    // ==================================================
+    // อัปเดตตัวเลข + Bar
+    // ==================================================
+    moodOrder.forEach(mood => {
+
+      const count =
+        counts[mood];
+
+      const percentage =
+        pct(count);
+
+
+      // ตัวเลขด้านบน
+      document.getElementById(
+        statIdMap[mood]
+      ).textContent = count;
+
+
+      // Bar
+      document.getElementById(
+        `fill_${mood}`
+      ).style.width =
+        percentage + "%";
+
+
+      // ตัวเลขข้าง Bar
+      document.getElementById(
+        `count_${mood}`
+      ).textContent =
+        count;
+
+    });
+
+
+    // ==================================================
+    // ไม่มีข้อมูล
+    // ==================================================
+    if (
+      !data ||
+      data.length === 0
+    ) {
+
+      emptyMsg.style.display =
+        'block';
+
+      return;
+
+    }
+
+
+    // ==================================================
+    // ตาราง
+    // ==================================================
+    tbody.innerHTML =
+      data.map(row => {
+
+        const normalizedMood =
+          moodNormalize[row.mood];
+
+        const moodText =
+          moodMeta[normalizedMood]?.th ||
+          row.mood ||
+          "-";
+
+
+        return `
+          <tr>
+
+            <td>
+              ${escapeHtml(row.student_name)}
+            </td>
+
+            <td>
+              ${escapeHtml(row.student_no)}
+            </td>
+
+            <td>
+              <span class="pill ${normalizedMood || ''}">
+                ${escapeHtml(moodText)}
+              </span>
+            </td>
+
+            <td>
+              ${
+                row.cause
+                  ? `<span class="cause-tag">
+                      ${escapeHtml(row.cause)}
+                    </span>`
+                  : `<span class="cause-tag">–</span>`
+              }
+            </td>
+
+            <td>
+              ${formatThaiDate(row.entry_date)}
+            </td>
+
+            <td>
+              ${formatTime(row.created_at)}
+            </td>
+
+          </tr>
+        `;
+
+      }).join('');
+
+
+    table.style.display =
+      'table';
+
+
+  } catch (err) {
+
+    console.error(
+      "Supabase Error:",
+      err
+    );
+
+    loadingMsg.style.display =
+      'none';
+
+    errMsg.style.display =
+      'block';
+
+    errMsg.textContent =
+      'โหลดข้อมูลไม่สำเร็จ: ' +
+      (
+        err.message ||
+        'unknown error'
+      );
+
   }
+
 }
 
-function escapeHtml(str){
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
+
+// ======================================================
+// ป้องกัน HTML Injection
+// ======================================================
+function escapeHtml(str) {
+
+  const div =
+    document.createElement('div');
+
+  div.textContent =
+    str ?? '';
+
   return div.innerHTML;
+
 }
 
-rangeSelect.addEventListener('change', loadData);
-causeFilter.addEventListener('change', loadData);
-refreshBtn.addEventListener('click', loadData);
 
+// ======================================================
+// Events
+// ======================================================
+rangeSelect.addEventListener(
+  'change',
+  loadData
+);
+
+causeFilter.addEventListener(
+  'change',
+  loadData
+);
+
+refreshBtn.addEventListener(
+  'click',
+  loadData
+);
+
+
+// ======================================================
+// เริ่มโหลด
+// ======================================================
 loadData();
+
 </script>
 </body>
 </html>
