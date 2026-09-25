@@ -1,0 +1,20 @@
+# Environment / secrets
+.env
+env.js
+
+# OS / editor junk
+.DS_Store
+node_modules/
+
+
+
+# ซ่อนไฟล์ JS ที่ระบุชื่อ
+index.js
+
+
+# ซ่อนโฟลเดอร์ทั้งหมด (เช่น node_modules)
+node_modules/
+
+# ซ่อนไฟล์นามสกุล .env ทั้งหมด (ที่มักใช้เก็บ API Key)
+*.env
+

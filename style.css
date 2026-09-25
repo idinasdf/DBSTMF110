@@ -1,0 +1,80 @@
+/* 1. จัดการตัวแม่ (body) เพื่อให้ .framess มาอยู่กลางจอ */
+body {
+    display: flex;
+    justify-content: center; /* จัดกลางแนวนอน */
+    align-items: center;     /* จัดกลางแนวตั้ง */
+    height: 100vh;           /* บังคับให้ body สูงเต็มหน้าจอ */
+    margin: 0;               /* ลบขอบขาวรอบหน้าจอ */
+}
+
+/* 2. กล่องล็อกอิน: เรียงของในกล่องเป็นแนวตั้ง ไม่ต้องใช้ position ดันแล้ว */
+.framess {
+    border-radius: 20px;
+    background-color: black;
+    color: white;
+    display: flex;
+    flex-direction: column;  /* เรียงบนลงล่าง */
+    justify-content: center;
+    align-items: center;
+    gap: 16px;               /* ระยะห่างระหว่างแต่ละอัน */
+    box-sizing: border-box;
+    width: min(350px, 90vw); /* จอเล็กจะหดตามอัตโนมัติ */
+    height: 350px;
+    padding: 24px;
+}
+
+.framebg {
+    border-radius: 20px;
+    background-color: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 350px;
+    width: 350px;
+}
+
+.textlogin {
+    margin: 0 0 8px;
+    font-size: 50px;
+}
+
+/* ช่องกรอกกับปุ่มใช้ความกว้างเท่ากัน จะได้เรียงพอดีกัน */
+.user,
+.password,
+.buttonLOGIN {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 260px;
+    height: 40px;
+    border: none;
+    border-radius: 8px;
+}
+
+.user,
+.password {
+    padding: 0 12px;
+    font-size: 14px;
+}
+
+.user:focus,
+.password:focus {
+    border: none;
+    outline: none;
+    box-shadow: 2px 2px 8px 4px rgba(17, 255, 0, 0.73);
+}
+
+.buttonLOGIN {
+    margin-top: 8px;
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.buttonLOGIN:hover {
+    background-color: black;
+    color: white;
+    outline: 1px solid white; /* กันปุ่มกลืนไปกับพื้นดำตอน hover */
+}
